@@ -1,9 +1,9 @@
 import { StyleSheet, Text } from 'react-native';
 import Colors from '../../constants/colors';
 
-function InstructionText({ children }) {
+function InstructionText({ children, style }) {
     return (
-        <Text style={styles.instructionText}>
+        <Text style={[styles.instructionText, style]}>
             {children}
         </Text>
     );
@@ -23,5 +23,6 @@ export const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 8,
         backgroundColor: Colors.primary800,
+        fontFamily: 'open-sans', 
     },
 });

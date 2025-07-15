@@ -1,14 +1,44 @@
-import { useState } from 'react';
-import { StyleSheet, View, ImageBackground, SafeAreaView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, ImageBackground, SafeAreaView } from 'react-native';
 import StartGameScreen from './screens/StartGameScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import GameScreen from './screens/GameScreen'; // Assuming you will use this later
-import Colors from './constants/colors'; 
+import Colors from './constants/colors';
 import GameOverScreen from './screens/GameOverScreen'; // Assuming you will use this later
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Splash screen'in otomatik gizlenmesini engelle
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [userNumber, setUserNumber] = useState(null);
   const [gameIsOver, setGameIsOver] = useState(true);
+  const [roundsNumber, setRoundsNumber] = useState(0);
+
+  // Font yükleme - hata ayıklama için basitleştirilmiş
+  const [fontsLoaded, fontError] = useFonts({
+    'open-sans': require('./assets/fonts/OpenSans-Regular.ttf'),
+    'open-sans-bold': require('./assets/fonts/OpenSans-Bold.ttf'),
+  });
+
+  useEffect(() => {
+    async function hideSplash() {
+      try {
+        if (fontsLoaded || fontError) {
+          await SplashScreen.hideAsync();
+        }
+      } catch (error) {
+        console.warn('SplashScreen hide error:', error);
+      }
+    }
+    hideSplash();
+  }, [fontsLoaded, fontError]);
+
+  // Font yükleme beklemesi
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   function pickedNumberHandler(pickedNumber) {
     setUserNumber(pickedNumber);
@@ -18,16 +48,26 @@ export default function App() {
   let screen = <StartGameScreen onPickNumber={pickedNumberHandler} />;
 
   if (userNumber) {
-    screen = <GameScreen userNumber={userNumber} onGameOver={gameOverHandler}/>;
+    screen = <GameScreen userNumber={userNumber} onGameOver={gameOverHandler} />;
   }
 
   if (gameIsOver && userNumber) {
-    screen = <GameOverScreen />;    
+    screen = <GameOverScreen
+      userNumber={userNumber}
+      roundsNumber={roundsNumber}
+      onStartNewGame={startNewGameHandler} />;
   }
 
-  function gameOverHandler() {
+  function gameOverHandler(numberOfRounds) {
     setGameIsOver(true);
+    setRoundsNumber(numberOfRounds); // Set the number of rounds when the game is over
   }
+
+  function startNewGameHandler() {
+    setUserNumber(null);
+    setRoundsNumber(0); // Reset rounds number when starting a new game
+  }
+
   return (
     // <View style={styles.container}>
     <LinearGradient style={styles.container} colors={[Colors.primary700, Colors.accent500]}>
